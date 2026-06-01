@@ -76,8 +76,8 @@ function GlassCard({ card, index }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setTilt({ x: 0, y: 0 }); setHovered(false); }}
       style={{
-        width: isMobile ? "140px" : "220px",
-        padding: isMobile ? "24px 16px" : "40px 32px",
+        width: "min(200px, 80vw)",
+        padding: "28px 20px",
         borderRadius: "28px",
         border: `1px solid rgba(${card.accent}, ${hovered ? 0.4 : 0.15})`,
         background: `rgba(${card.accent}, ${hovered ? 0.12 : 0.05})`,
@@ -109,7 +109,7 @@ function GlassCard({ card, index }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "1.2rem",
+        fontSize: "0.85rem",
         fontWeight: "800",
         color: `rgba(${card.accent}, 1)`
       }}>
@@ -117,7 +117,9 @@ function GlassCard({ card, index }) {
       </div>
 
       <h3 style={{
-        fontSize: "1.3rem",
+        color: hovered ? "#FFD700" : "#ffffff",
+        transition: "color 0.4s ease",
+        fontSize: "clamp(0.9rem, 2vw, 1.3rem)",
         fontWeight: "700",
         margin: "0 0 12px 0",
         letterSpacing: "0.5px"
@@ -126,8 +128,9 @@ function GlassCard({ card, index }) {
       </h3>
 
       <p style={{
-        fontSize: "0.9rem",
-        color: "rgba(255,255,255,0.55)",
+        color: hovered ? "rgba(255, 215, 0, 0.6)" : "rgba(255,255,255,0.55)",
+        transition: "color 0.4s ease",
+        fontSize: "clamp(0.75rem, 1.5vw, 0.9rem)",
         margin: 0,
         lineHeight: "1.6"
       }}>
@@ -211,10 +214,10 @@ export default function App() {
         justifyContent: "center",
         alignItems: "center",
         pointerEvents: "none",
-        color: "#ffffff",
+        color: "#11a0f2",
         textAlign: "center",
-        padding: "40px 20px",
-        gap: "40px",
+        padding: "clamp(20px, 5vh, 40px) 20px",
+        gap: "clamp(16px, 3vw, 40px)",
         boxSizing: "border-box",
         overflowY: "auto",
       }}>
@@ -236,8 +239,8 @@ export default function App() {
             Glassmorphism
           </h1>
           <p style={{
-            fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
-            color: "rgba(255,255,255,0.5)",
+            fontSize: "clamp(0.9rem, 2vw, 1.3rem)",
+            color: "rgba(113, 237, 30, 0.67)",
             margin: 0,
             maxWidth: "460px"
           }}>

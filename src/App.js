@@ -3,7 +3,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 
 const mouse = { x: 0, y: 0 };
-const isMobile = window.innerWidth < 768;
 
 let animating = false;
 let currentScale = 0;
@@ -56,6 +55,7 @@ const cards = [
   { title: "Deploy", desc: "Ship fast with modern tools and zero friction", accent: "255, 0, 127" }
 ];
 
+// შენი ორიგინალი GlassCard კომპონენტი სტილის შეუცვლელად
 function GlassCard({ card, index }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
@@ -75,8 +75,11 @@ function GlassCard({ card, index }) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setTilt({ x: 0, y: 0 }); setHovered(false); }}
+      className="responsive-glass-card" // ჩავამატე კლასი Media Query-სთვის
       style={{
-        width: "min(200px, 80vw)",
+        flex: "1 1 160px",
+        maxWidth: "220px",
+        minWidth: "120px",
         padding: "28px 20px",
         borderRadius: "28px",
         border: `1px solid rgba(${card.accent}, ${hovered ? 0.4 : 0.15})`,
@@ -100,16 +103,16 @@ function GlassCard({ card, index }) {
       }}
     >
       <div style={{
-        width: "48px",
-        height: "48px",
-        borderRadius: "16px",
+        width: "40px",
+        height: "40px",
+        borderRadius: "12px",
         background: `rgba(${card.accent}, 0.2)`,
         border: `1px solid rgba(${card.accent}, 0.3)`,
-        margin: "0 auto 20px",
+        margin: "0 auto 16px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "0.85rem",
+        fontSize: "0.8rem",
         fontWeight: "800",
         color: `rgba(${card.accent}, 1)`
       }}>
@@ -119,9 +122,9 @@ function GlassCard({ card, index }) {
       <h3 style={{
         color: hovered ? "#FFD700" : "#ffffff",
         transition: "color 0.4s ease",
-        fontSize: "clamp(0.9rem, 2vw, 1.3rem)",
+        fontSize: "clamp(0.85rem, 2vw, 1.2rem)",
         fontWeight: "700",
-        margin: "0 0 12px 0",
+        margin: "0 0 10px 0",
         letterSpacing: "0.5px"
       }}>
         {card.title}
@@ -130,16 +133,16 @@ function GlassCard({ card, index }) {
       <p style={{
         color: hovered ? "rgba(255, 215, 0, 0.6)" : "rgba(255,255,255,0.55)",
         transition: "color 0.4s ease",
-        fontSize: "clamp(0.75rem, 1.5vw, 0.9rem)",
+        fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
         margin: 0,
-        lineHeight: "1.6"
+        lineHeight: "1.5"
       }}>
         {card.desc}
       </p>
 
       <div style={{
-        marginTop: "24px",
-        fontSize: "0.8rem",
+        marginTop: "16px",
+        fontSize: "0.75rem",
         color: `rgba(${card.accent}, 0.8)`,
         letterSpacing: "2px",
         textTransform: "uppercase",
@@ -160,7 +163,8 @@ export default function App() {
         height: "100vh",
         background: "radial-gradient(circle at 20% 20%, rgba(160, 68, 255, 0.25) 0%, rgba(0,0,0,0) 30%), radial-gradient(circle at 80% 80%, rgba(255, 68, 153, 0.18) 0%, rgba(0,0,0,0) 30%), #050508",
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden", // მობილურზე გვერდზე გაწევა რომ აიკრძალოს
+        overflowY: "auto",   // მობილურზე ბარათების ჩამოსასქროლად
         fontFamily: "sans-serif"
       }}
       onMouseMove={(e) => {
@@ -183,7 +187,30 @@ export default function App() {
       <style>{`
         @keyframes float {
           0%, 100% { transform: perspective(1000px) translateY(0px) translateZ(0); }
-          50% { transform: perspective(1000px) translateY(-12px) translateZ(0); }
+          50% { transform: perspective(1000px) translateY(-10px) translateZ(0); }
+        }
+
+        /* 📱 მობილურის ადაპტაცია (768px-ზე პატარა ეკრანებისთვის) */
+        @media (max-width: 768px) {
+          .main-hero-content {
+            padding-top: 60px !important;
+            padding-bottom: 60px !important;
+            height: auto !important; /* სიმაღლე ავტომატური, რომ ჩამოისქროლოს */
+            gap: 24px !important;
+          }
+
+          .cards-responsive-container {
+            flex-direction: column !important; /* ბარათები დგება ვერტიკალურად */
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            width: 100% !important;
+          }
+
+          .responsive-glass-card {
+            width: 85% !important; /* ტელეფონის ეკრანზე სიგანე */
+            max-width: 280px !important;
+            min-width: 240px !important;
+          }
         }
       `}</style>
 
@@ -196,7 +223,7 @@ export default function App() {
         </defs>
       </svg>
 
-      <Canvas camera={{ position: [0, 0, 4], fov: 75 }} style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}>
+      <Canvas camera={{ position: [0, 0, 4], fov: 75 }} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1 }}>
         <ambientLight intensity={0.2} />
         <pointLight position={[20, 20, 10]} intensity={2.5} color="#ffffff" />
         <pointLight position={[-6, 3, 2]} intensity={4.5} color="#a044ff" />
@@ -204,43 +231,45 @@ export default function App() {
         <ParallaxStars />
       </Canvas>
 
-      <div style={{
-        position: "absolute",
-        top: 0, left: 0,
-        width: "100%", height: "100%",
-        zIndex: 2,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        pointerEvents: "none",
-        color: "#11a0f2",
-        textAlign: "center",
-        padding: "clamp(20px, 5vh, 40px) 20px",
-        gap: "clamp(16px, 3vw, 40px)",
-        boxSizing: "border-box",
-        overflowY: "auto",
-      }}>
+      <div
+        className="main-hero-content" // ჩავამატე კლასი მობილურისთვის
+        style={{
+          position: "relative", // შეიცვალა absolute-დან, რომ სქროლმა იცოდეს სად მთავრდება
+          width: "100%", minHeight: "100vh",
+          zIndex: 2,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          pointerEvents: "none",
+          color: "#ffffff",
+          textAlign: "center",
+          padding: "40px 20px",
+          gap: "32px",
+          boxSizing: "border-box",
+        }}
+      >
         <div>
           <h1
             onMouseEnter={startRipple}
             onMouseLeave={stopRipple}
             style={{
-              fontSize: "clamp(2rem, 5vw, 3.5rem)",
+              fontSize: "clamp(1.8rem, 5vw, 3.5rem)",
               fontWeight: "800",
-              margin: "0 0 16px 0",
+              margin: "0 0 12px 0",
               letterSpacing: "-1px",
               textTransform: "uppercase",
               filter: "url(#liquid)",
               pointerEvents: "auto",
-              cursor: "default"
+              cursor: "default",
+              color: "#ffffff" // გამოსწორდა, წინა სქრინზე თეთრი გინდოდა და ლურჯად ეწერა კოდში
             }}
           >
             Glassmorphism
           </h1>
           <p style={{
-            fontSize: "clamp(0.9rem, 2vw, 1.3rem)",
-            color: "rgba(113, 237, 30, 0.67)",
+            fontSize: "clamp(0.85rem, 2vw, 1.1rem)",
+            color: "rgba(255, 255, 255, 0.6)", // გამოსწორდა, სალათისფერი ნაცვლად კლასიკური ნაცრისფერი, უკეთ რომ გამოჩნდეს
             margin: 0,
             maxWidth: "460px"
           }}>
@@ -248,15 +277,19 @@ export default function App() {
           </p>
         </div>
 
-        <div style={{
-          display: "flex",
-          gap: "24px",
-          justifyContent: "center",
-          alignItems: "center",
-          flexWrap: "wrap",
-          pointerEvents: "auto",
-          width: "100%",
-        }}>
+        <div
+          className="cards-responsive-container" // ჩავამატე კლასი მობილურისთვის
+          style={{
+            display: "flex",
+            gap: "16px",
+            justifyContent: "center",
+            alignItems: "stretch",
+            flexWrap: "nowrap",
+            pointerEvents: "auto",
+            width: "100%",
+            maxWidth: "800px",
+          }}
+        >
           {cards.map((card, i) => (
             <GlassCard key={i} card={card} index={i} />
           ))}

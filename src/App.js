@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 
 const mouse = { x: 0, y: 0 };
@@ -168,7 +168,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    return () => cancelAnimationFrame(rippleState.current.animFrame);
+    // ESLint Ref warning fix
+    const currentState = rippleState.current;
+    return () => {
+      if (currentState && currentState.animFrame) {
+        cancelAnimationFrame(currentState.animFrame);
+      }
+    };
   }, []);
 
   return (

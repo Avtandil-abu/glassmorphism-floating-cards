@@ -1,51 +1,29 @@
-import { useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useRef, useState, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import * as THREE from "three";
 
 const mouse = { x: 0, y: 0 };
-
-let animating = false;
-let currentScale = 0;
-let animFrame = null;
-
-function startRipple() {
-  animating = true;
-  const disp = document.getElementById("displacement");
-  let time = 0;
-  function animate() {
-    if (!animating) {
-      currentScale *= 0.92;
-      disp.setAttribute("scale", currentScale);
-      if (currentScale > 0.1) {
-        animFrame = requestAnimationFrame(animate);
-      } else {
-        currentScale = 0;
-        disp.setAttribute("scale", 0);
-      }
-      return;
-    }
-    time += 0.02;
-    currentScale = 12 + Math.sin(time * 2) * 5 + Math.sin(time * 5) * 3;
-    disp.setAttribute("scale", currentScale);
-    animFrame = requestAnimationFrame(animate);
-  }
-  cancelAnimationFrame(animFrame);
-  animate();
-}
-
-function stopRipple() {
-  animating = false;
-}
+const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
 function ParallaxStars() {
   const starsRef = useRef();
+  const { viewport } = useThree();
+
   useFrame(() => {
-    if (!starsRef.current) return;
-    starsRef.current.rotation.x += (mouse.y * 0.05 - starsRef.current.rotation.x) * 0.05;
-    starsRef.current.rotation.y += (mouse.x * 0.05 - starsRef.current.rotation.y) * 0.05;
+    if (!starsRef.current || isMobile) return;
+
+    const targetX = mouse.x * 0.4;
+    const targetY = mouse.y * 0.4;
+
+    starsRef.current.rotation.y += (targetX - starsRef.current.rotation.y) * 0.05;
+    starsRef.current.rotation.x += (targetY - starsRef.current.rotation.x) * 0.05;
   });
+
   return (
-    <Stars ref={starsRef} radius={100} depth={50} count={900} factor={6} saturation={0} fade speed={0.8} />
+    <group ref={starsRef}>
+      <Stars radius={100} depth={50} count={1000} factor={6} saturation={0} fade speed={0.5} />
+    </group>
   );
 }
 
@@ -55,7 +33,6 @@ const cards = [
   { title: "Deploy", desc: "Ship fast with modern tools and zero friction", accent: "255, 0, 127" }
 ];
 
-// შენი ორიგინალი GlassCard კომპონენტი სტილის შეუცვლელად
 function GlassCard({ card, index }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
@@ -64,38 +41,38 @@ function GlassCard({ card, index }) {
   const floatDelays = [0, 1.2, 0.6];
 
   const handleMouseMove = (e) => {
+    if (isMobile) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: y * 20, y: x * -20 });
+    setTilt({ x: y * 15, y: x * -15 });
   };
 
   return (
     <div
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => !isMobile && setHovered(true)}
       onMouseLeave={() => { setTilt({ x: 0, y: 0 }); setHovered(false); }}
-      className="responsive-glass-card" // ჩავამატე კლასი Media Query-სთვის
+      className="responsive-glass-card"
       style={{
-        flex: "1 1 160px",
-        maxWidth: "220px",
-        minWidth: "120px",
+        flex: "1 1 200px",
+        maxWidth: "240px",
         padding: "28px 20px",
-        borderRadius: "28px",
+        borderRadius: "24px",
         border: `1px solid rgba(${card.accent}, ${hovered ? 0.4 : 0.15})`,
-        background: `rgba(${card.accent}, ${hovered ? 0.12 : 0.05})`,
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
+        background: `rgba(${card.accent}, ${hovered ? 0.12 : 0.04})`,
+        backdropFilter: "blur(30px)",
+        WebkitBackdropFilter: "blur(30px)",
         boxShadow: hovered
-          ? `0 24px 80px rgba(${card.accent}, 0.25), inset 0 1px 0 rgba(255,255,255,0.15)`
+          ? `0 24px 60px rgba(${card.accent}, 0.25), inset 0 1px 0 rgba(255,255,255,0.15)`
           : `0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)`,
         color: "#ffffff",
         textAlign: "center",
         cursor: "pointer",
-        transition: "border 0.4s ease, background 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease",
+        transition: "border 0.4s ease, background 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease-out",
         willChange: "transform",
         transform: hovered
-          ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-12px)`
+          ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-10px)`
           : undefined,
         animation: hovered
           ? "none"
@@ -106,13 +83,13 @@ function GlassCard({ card, index }) {
         width: "40px",
         height: "40px",
         borderRadius: "12px",
-        background: `rgba(${card.accent}, 0.2)`,
+        background: `rgba(${card.accent}, 0.15)`,
         border: `1px solid rgba(${card.accent}, 0.3)`,
         margin: "0 auto 16px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "0.8rem",
+        fontSize: "0.85rem",
         fontWeight: "800",
         color: `rgba(${card.accent}, 1)`
       }}>
@@ -122,7 +99,7 @@ function GlassCard({ card, index }) {
       <h3 style={{
         color: hovered ? "#FFD700" : "#ffffff",
         transition: "color 0.4s ease",
-        fontSize: "clamp(0.85rem, 2vw, 1.2rem)",
+        fontSize: "1.2rem",
         fontWeight: "700",
         margin: "0 0 10px 0",
         letterSpacing: "0.5px"
@@ -131,9 +108,9 @@ function GlassCard({ card, index }) {
       </h3>
 
       <p style={{
-        color: hovered ? "rgba(255, 215, 0, 0.6)" : "rgba(255,255,255,0.55)",
+        color: hovered ? "rgba(255, 215, 0, 0.7)" : "rgba(255,255,255,0.6)",
         transition: "color 0.4s ease",
-        fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
+        fontSize: "0.85rem",
         margin: 0,
         lineHeight: "1.5"
       }}>
@@ -141,9 +118,9 @@ function GlassCard({ card, index }) {
       </p>
 
       <div style={{
-        marginTop: "16px",
+        marginTop: "18px",
         fontSize: "0.75rem",
-        color: `rgba(${card.accent}, 0.8)`,
+        color: `rgba(${card.accent}, 0.9)`,
         letterSpacing: "2px",
         textTransform: "uppercase",
         opacity: hovered ? 1 : 0,
@@ -156,86 +133,125 @@ function GlassCard({ card, index }) {
 }
 
 export default function App() {
+  const displacementRef = useRef(null);
+  const rippleState = useRef({ animating: false, currentScale: 0, time: 0, animFrame: null });
+
+  const startRipple = () => {
+    rippleState.current.animating = true;
+
+    function animate() {
+      if (!displacementRef.current) return;
+
+      if (!rippleState.current.animating) {
+        rippleState.current.currentScale *= 0.92;
+        displacementRef.current.setAttribute("scale", rippleState.current.currentScale);
+
+        if (rippleState.current.currentScale > 0.1) {
+          rippleState.current.animFrame = requestAnimationFrame(animate);
+        } else {
+          rippleState.current.currentScale = 0;
+          displacementRef.current.setAttribute("scale", 0);
+        }
+        return;
+      }
+
+      rippleState.current.time += 0.02;
+      rippleState.current.currentScale = 12 + Math.sin(rippleState.current.time * 2) * 5 + Math.sin(rippleState.current.time * 5) * 3;
+      displacementRef.current.setAttribute("scale", rippleState.current.currentScale);
+      rippleState.current.animFrame = requestAnimationFrame(animate);
+    }
+
+    cancelAnimationFrame(rippleState.current.animFrame);
+    animate();
+  };
+
+  const stopRipple = () => {
+    rippleState.current.animating = false;
+  };
+
+  useEffect(() => {
+    return () => cancelAnimationFrame(rippleState.current.animFrame);
+  }, []);
+
   return (
     <div
       style={{
         width: "100vw",
         height: "100vh",
-        background: "radial-gradient(circle at 20% 20%, rgba(160, 68, 255, 0.25) 0%, rgba(0,0,0,0) 30%), radial-gradient(circle at 80% 80%, rgba(255, 68, 153, 0.18) 0%, rgba(0,0,0,0) 30%), #050508",
+        background: "radial-gradient(circle at 20% 20%, rgba(160, 68, 255, 0.2) 0%, rgba(0,0,0,0) 40%), radial-gradient(circle at 80% 80%, rgba(255, 68, 153, 0.15) 0%, rgba(0,0,0,0) 40%), #050508",
         position: "relative",
-        overflowX: "hidden", // მობილურზე გვერდზე გაწევა რომ აიკრძალოს
-        overflowY: "auto",   // მობილურზე ბარათების ჩამოსასქროლად
-        fontFamily: "sans-serif"
+        overflowX: "hidden",
+        overflowY: "auto",
+        fontFamily: "sans-serif",
+        userSelect: "none"
       }}
+
       onMouseMove={(e) => {
         mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
-        mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+        mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
       }}
       onMouseLeave={() => { mouse.x = 0; mouse.y = 0; }}
-      onTouchStart={(e) => {
-        const t = e.touches[0];
-        mouse.x = (t.clientX / window.innerWidth - 0.5) * 2;
-        mouse.y = (t.clientY / window.innerHeight - 0.5) * 2;
-      }}
       onTouchMove={(e) => {
         const t = e.touches[0];
         mouse.x = (t.clientX / window.innerWidth - 0.5) * 2;
-        mouse.y = (t.clientY / window.innerHeight - 0.5) * 2;
+        mouse.y = -(t.clientY / window.innerHeight - 0.5) * 2;
       }}
       onTouchEnd={() => { mouse.x = 0; mouse.y = 0; }}
     >
       <style>{`
         @keyframes float {
-          0%, 100% { transform: perspective(1000px) translateY(0px) translateZ(0); }
-          50% { transform: perspective(1000px) translateY(-10px) translateZ(0); }
+          0%, 100% { transform: perspective(1000px) translateY(0px); }
+          50% { transform: perspective(1000px) translateY(-10px); }
         }
 
-        /* 📱 მობილურის ადაპტაცია (768px-ზე პატარა ეკრანებისთვის) */
         @media (max-width: 768px) {
           .main-hero-content {
-            padding-top: 60px !important;
-            padding-bottom: 60px !important;
-            height: auto !important; /* სიმაღლე ავტომატური, რომ ჩამოისქროლოს */
-            gap: 24px !important;
+            padding: 60px 20px !important;
+            height: auto !important; 
+            gap: 40px !important;
           }
-
           .cards-responsive-container {
-            flex-direction: column !important; /* ბარათები დგება ვერტიკალურად */
-            flex-wrap: nowrap !important;
+            flex-direction: column !important; 
             align-items: center !important;
             width: 100% !important;
+            gap: 24px !important;
           }
-
           .responsive-glass-card {
-            width: 85% !important; /* ტელეფონის ეკრანზე სიგანე */
-            max-width: 280px !important;
-            min-width: 240px !important;
+            width: 100% !important;
+            max-width: 300px !important;
+            animation: none !important;
           }
         }
       `}</style>
 
+      {/* SVG FILTER */}
       <svg style={{ position: "absolute", width: 0, height: 0 }}>
         <defs>
           <filter id="liquid">
             <feTurbulence type="turbulence" baseFrequency="0.008" numOctaves="6" result="noise" />
-            <feDisplacementMap id="displacement" in="SourceGraphic" in2="noise" scale="0" />
+            <feDisplacementMap ref={displacementRef} in="SourceGraphic" in2="noise" scale="0" />
           </filter>
         </defs>
       </svg>
 
-      <Canvas camera={{ position: [0, 0, 4], fov: 75 }} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1 }}>
-        <ambientLight intensity={0.2} />
-        <pointLight position={[20, 20, 10]} intensity={2.5} color="#ffffff" />
-        <pointLight position={[-6, 3, 2]} intensity={4.5} color="#a044ff" />
-        <pointLight position={[6, -3, 4]} intensity={5.0} color="#00d2ff" />
-        <ParallaxStars />
-      </Canvas>
+      {/* BACKGROUND 3D STARS */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1, pointerEvents: "none" }}>
+        <Canvas camera={{ position: [0, 0, 4], fov: 75 }} gl={{ alpha: true }}>
+          <ambientLight intensity={0.2} />
+          <pointLight position={[20, 20, 10]} intensity={2.5} color="#ffffff" />
+          <pointLight position={[-6, 3, 2]} intensity={4.5} color="#a044ff" />
+          <pointLight position={[6, -3, 4]} intensity={5.0} color="#00d2ff" />
+          <ParallaxStars />
+        </Canvas>
+      </div>
 
+      {/* CONTENT INTERLAY */}
       <div
-        className="main-hero-content" // ჩავამატე კლასი მობილურისთვის
+        className="main-hero-content"
         style={{
-          position: "relative", // შეიცვალა absolute-დან, რომ სქროლმა იცოდეს სად მთავრდება
-          width: "100%", minHeight: "100vh",
+          position: "relative",
+          width: "100%",
+          minHeight: "100vh",
           zIndex: 2,
           display: "flex",
           flexDirection: "column",
@@ -245,7 +261,7 @@ export default function App() {
           color: "#ffffff",
           textAlign: "center",
           padding: "40px 20px",
-          gap: "32px",
+          gap: "48px",
           boxSizing: "border-box",
         }}
       >
@@ -254,22 +270,22 @@ export default function App() {
             onMouseEnter={startRipple}
             onMouseLeave={stopRipple}
             style={{
-              fontSize: "clamp(1.8rem, 5vw, 3.5rem)",
+              fontSize: "clamp(2rem, 6vw, 3.8rem)",
               fontWeight: "800",
-              margin: "0 0 12px 0",
+              margin: "0 0 16px 0",
               letterSpacing: "-1px",
               textTransform: "uppercase",
               filter: "url(#liquid)",
               pointerEvents: "auto",
               cursor: "default",
-              color: "#ffffff" // გამოსწორდა, წინა სქრინზე თეთრი გინდოდა და ლურჯად ეწერა კოდში
+              color: "#ffffff"
             }}
           >
             Glassmorphism
           </h1>
           <p style={{
-            fontSize: "clamp(0.85rem, 2vw, 1.1rem)",
-            color: "rgba(255, 255, 255, 0.6)", // გამოსწორდა, სალათისფერი ნაცვლად კლასიკური ნაცრისფერი, უკეთ რომ გამოჩნდეს
+            fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+            color: "rgba(255, 255, 255, 0.6)",
             margin: 0,
             maxWidth: "460px"
           }}>
@@ -278,16 +294,15 @@ export default function App() {
         </div>
 
         <div
-          className="cards-responsive-container" // ჩავამატე კლასი მობილურისთვის
+          className="cards-responsive-container"
           style={{
             display: "flex",
-            gap: "16px",
+            gap: "24px",
             justifyContent: "center",
-            alignItems: "stretch",
-            flexWrap: "nowrap",
+            alignItems: "center",
             pointerEvents: "auto",
             width: "100%",
-            maxWidth: "800px",
+            maxWidth: "900px",
           }}
         >
           {cards.map((card, i) => (

@@ -1,14 +1,12 @@
 import { useRef, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
-import * as THREE from "three";
 
 const mouse = { x: 0, y: 0 };
 const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
 function ParallaxStars() {
   const starsRef = useRef();
-  const { viewport } = useThree();
 
   useFrame(() => {
     if (!starsRef.current || isMobile) return;
@@ -185,7 +183,6 @@ export default function App() {
         fontFamily: "sans-serif",
         userSelect: "none"
       }}
-
       onMouseMove={(e) => {
         mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
         mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
